@@ -7,62 +7,140 @@
  ██║███╗██║██╔══██║██╔══██║   ██║   ╚════██║██╔══██║██║   ██║   ██║   ██║   ██║
  ╚███╔███╔╝██║  ██║██║  ██║   ██║   ███████║██║  ██║╚██████╔╝   ██║   ╚██████╔╝
   ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝
- WhatsAuto Bulk Automation  v1.0.0  | Bulk Meet & Form | Groups
+WhatsAuto Bulk Automation  v1.0.0  | Bulk Meet & Form | Groups
 ```
 
-**WhatsAuto** — NPM library + CLI to send detailed personalized WhatsApp messages and create/update groups from a CSV. All inputs are mapped via flags: **file location, group name, Google Meet link, Google Form link**.
+**WhatsAuto** sends personalized WhatsApp messages to everyone in a CSV file and
+creates/updates a WhatsApp group — automatically filling in each person's name,
+session, Google Meet link, and Google Form link.
 
-Built on `whatsapp-web.js` (WhatsApp Web, session persists after QR). Validates and normalizes Google Meet / Form links.
+The easiest way to use it: run `whatsauto` and answer a few simple questions.
 
-## Features
+---
 
-- CSV: `phone,name,session,meet_link,form_link`
-- Template placeholders: `{{name}} {{phone}} {{session}} {{meet_link}} {{form_link}} {{group_name}}`
-- Flags override CSV for all contacts
-- Validates WhatsApp numbers, random delay anti-ban, logs to `logs/`
-- Group: creates if not exists, else adds new members (skips existing), always mentions group name
-- Works as CLI `wa-bulk` and as library `require('whatsauto')`
-- Dry-run preview without login
+## Quick Start (2 minutes)
 
-## Flags Mapping
-
-| Input | Flags | Library Option |
-| File (CSV location) | `--csv`, `--file`, `--input`, `--contacts` | `contactsCsv` |
-| Group name | `--group`, `--group-name`, `--name` | `groupName` |
-| Meet link | `--meet`, `--meet-link`, `--meeting`, `--link`, `--url` | `meetLink` |
-| Form link | `--form`, `--form-link`, `--google-form`, `--gform` | `formLink` |
-
-## Prerequisites
-
-- Node.js 18+ (`node -v`)
-- WhatsApp account for QR scan
-
-## Installation
+### 1. Install
 
 ```powershell
-# As a consumer of the published package
-npm i whatsauto
-
-# Dev install inside the repo
-cd D:\Suskbs\whatsapp
-npm.cmd install
+npm install -g whatsauto
 ```
 
-If you get `npm.ps1 cannot be loaded`, use `npm.cmd` or:
-```powershell
-powershell -ExecutionPolicy Bypass -File .\run.ps1
-```
+> Windows PowerShell blocks `npm` sometimes. If you see `npm.ps1 cannot be loaded`,
+> use `npm.cmd` instead:
+> ```powershell
+> npm.cmd install -g whatsauto
+> ```
 
-## Setup Data
+### 2. Prepare your contacts file (CSV)
 
-1. **Contacts** `data/contacts.csv`:
+Create a CSV file anywhere, e.g. `contacts.csv`:
+
 ```csv
 phone,name,session,meet_link,form_link
 919876543210,Rahul Sharma,Session 1,https://meet.google.com/abc-defg-hij,https://forms.gle/xyz123
-919876543211,Priya Verma,Session 1,https://meet.google.com/abc-defg-hij,https://forms.gle/xyz123
+919876543211,Priya Verma,Session 2,https://meet.google.com/abc-defg-hij,https://forms.gle/xyz123
 ```
 
-2. **Template** `data/message_template_detailed.txt` (default):
+Columns: `phone` (with country code) | `name` | `session` | `meet_link` | `form_link`
+
+You can also use an Excel file (`.xlsx`) — same columns.
+
+### 3. Run it
+
+```powershell
+whatsauto
+```
+
+The program asks 4 questions — just type your answers:
+
+```
+[INTERACTIVE] WhatsApp bulk automation. Press Enter to accept the [default].
+
+  File location (CSV or XLSX) [./data/contacts.csv]:  C:\Users\you\Desktop\contacts.csv
+  Group name [SUSKBS Session Group]:                   SUMMER BATCH 2026
+  Google Meet link (Enter to use links from CSV):      https://meet.google.com/abc-defg-hij
+  Google Form link (Enter to use links from CSV):      https://forms.gle/xyz123
+```
+
+- **File location** — path to your CSV or XLSX file
+- **Group name** — the WhatsApp group everyone will be added to
+- **Meet link / Form link** — type one link to use it for *everyone*, or press
+  Enter to use each contact's own link from the CSV
+
+It then shows a preview message. Type **`YES`** to send for real.
+
+---
+
+## What happens next
+
+1. A **QR code** appears on the first run — scan it with your phone:
+   **WhatsApp → Settings → Linked Devices → Link a Device**
+   (Your session is saved, so you only scan once.)
+2. **WhatsAuto sends each person** their personalized message with their own
+   name, session, meet link, and form link.
+3. **WhatsAuto creates the group** (or adds new members if it already exists)
+   and posts a group message with the session + group link + form link.
+4. Results are logged to `logs/` for review.
+
+---
+
+## Advanced: skip the questions with flags
+
+Every question above can be pre-filled on the command line:
+
+```powershell
+whatsauto both --file .\contacts.csv --group "SUMMER BATCH 2026" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz123
+```
+
+| What you'd type | Flags |
+|-----------------|-------|
+| File location | `--file`, `--csv`, `--input`, `--contacts` |
+| Group name | `--group`, `--group-name`, `--name` |
+| Meet link | `--meet`, `--meet-link`, `--meeting`, `--link`, `--url` |
+| Form link | `--form`, `--form-link`, `--google-form`, `--gform` |
+
+### Useful commands
+
+```powershell
+whatsauto                  # interactive mode (asks the 4 questions)
+whatsauto preview          # dry-run preview, no WhatsApp login needed
+whatsauto send             # only send personal messages
+whatsauto group            # only create/update the group
+whatsauto both             # send messages + create/update group
+```
+
+> **Tip:** Run `whatsauto preview` first to check your messages before sending
+> for real.
+
+---
+
+## Use as an NPM library
+
+```js
+const { WhatsappBulk } = require('whatsauto');
+
+const wa = new WhatsappBulk({
+  contactsCsv: './contacts.csv',
+  groupName: 'SUMMER BATCH 2026',
+  meetLink: 'https://meet.google.com/abc-defg-hij',
+  formLink: 'https://forms.gle/xyz123'
+});
+
+wa.previewMessages().forEach(({ contact, message }) => console.log(message));
+
+await wa.init();                 // QR scan on first run
+await wa.sendBulk();             // send personal messages
+await wa.createOrUpdateGroup();  // create/update the group
+await wa.destroy();
+```
+
+---
+
+## Message template
+
+Messages are built from `data/message_template_detailed.txt` (default):
+
 ```
 Hello {{name}},
 Session: {{session}}
@@ -71,141 +149,54 @@ Meet: {{meet_link}}
 Form: {{form_link}}
 ```
 
-3. **Config** `config.json` (optional): default group, delays, `countryCodeDefault`.
+Available placeholders:
+`{{name}}` `{{phone}}` `{{session}}` `{{meet_link}}` `{{form_link}}` `{{group_name}}`
 
-## Commands to Run
+---
 
-All commands support flags for file, group, meet, form. Use PowerShell with `npm.cmd`.
+## Configuration
 
-### 1. Preview (dry-run, no login) — Recommended First
+Optional `config.json` controls defaults (group name, message delays, country code).
+The program uses sensible defaults, so you usually never need to touch it.
 
-```powershell
-# Default (uses data/contacts.csv + config group + CSV links)
-node src/testTemplate.js
-node bin/cli.js preview
-
-# With all flags
-node bin/cli.js preview --file ./data/contacts.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz123
-
-# Aliases also work
-node src/testTemplate.js --csv ./data/contacts.csv --group-name "Batch 2" --meet-link https://meet.google.com/xyz --form-link https://docs.google.com/forms/d/xxx/viewform
-```
-
-### 2. Interactive Menu (prompts for group/meet/form, or use flags)
-
-```powershell
-node app.js
-# With flags (skips prompts for those values)
-node app.js --file ./data/contacts.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz123
-```
-
-Menu:
-```
-1) Send BULK personalized messages
-2) Create WhatsApp GROUP from CSV
-3) Do BOTH (send + create group)
-4) Preview all messages (dry run)
-5) Exit
-```
-First run shows QR: scan with **WhatsApp > Linked Devices > Link a device**. Session saved to `.wwebjs_auth/`.
-
-### 3. Direct CLI (whatsauto / wa-bulk)
-
-```powershell
-# INTERACTIVE — type whatsauto, then enter:
-#   file location, group name, Google Meet link, Google Form link
-whatsauto
-
-# Or with npx (before install/publish for local testing)
-npx whatsauto
-
-# Flags (skip prompts):
-whatsauto preview --file ./data/contacts.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz123
-whatsauto send --file ./data/contacts.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz123
-whatsauto both --file ./data/contacts.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz123
-wa-bulk group --file ./data/contacts.csv --group "SUSKBS Batch 1"
-
-# Installed as dependency (npx after publish)
-npx wa-bulk preview --file ./data/contacts.csv --group "G1" --meet <link> --form <link>
-```
-
-The interactive `whatsauto` prompt asks you for each input (press Enter to keep the default):
-
-```
-[INTERACTIVE] WhatsApp bulk automation. Press Enter to accept the [default].
-
-  File location (CSV or XLSX) [./data/contacts.csv]:   <-- type your file (or Enter)
-  Group name [SUSKBS Session Group]:                    <-- type the group name
-  Google Meet link (Enter to use links from CSV):       <-- type a Meet link for everyone
-  Google Form link (Enter to use links from CSV):       <-- type a Form link for everyone
-```
-
-It then previews one message, asks you to confirm with `YES`, and runs send + create/update group.
-
-### 4. Standalone Scripts
-
-```powershell
-node src/bulkSender.js --file ./data/contacts.csv --group "G1" --meet https://meet.google.com/x --form https://forms.gle/y
-node src/groupCreator.js --file ./data/contacts.csv --group "G1"
-```
-
-### 5. As NPM Library
-
-```js
-const { WhatsappBulk } = require('whatsauto');
-
-const wa = new WhatsappBulk({
-  contactsCsv: './data/contacts.csv', // --file
-  groupName: 'SUSKBS Batch 1',         // --group
-  meetLink: 'https://meet.google.com/abc-defg-hij', // --meet
-  formLink: 'https://forms.gle/xyz123'             // --form
-});
-
-wa.previewMessages().forEach(({contact, message}) => console.log(message));
-
-await wa.init(); // QR first time
-await wa.sendBulk();
-await wa.createOrUpdateGroup();
-await wa.destroy();
-```
-
-See `examples/usage.js:1` for full library examples.
+---
 
 ## Project Structure
 
 ```
 whatsapp/
+├── bin/cli.js            # CLI (whatsauto / wa-bulk)
 ├── lib/index.js          # Library entry (WhatsappBulk)
-├── lib/meet.js           # Meet/Form validation & normalization
+├── lib/meet.js           # Meet/Form link validation & normalization
 ├── lib/formatter.js      # Detailed message builder
-├── bin/cli.js            # CLI wa-bulk
 ├── src/client.js         # WhatsApp client + QR
-├── src/utils.js          # CSV + template ({{group_name}}, {{form_link}})
-├── src/bulkSender.js     # Bulk send (all flags)
-├── src/groupCreator.js   # createOrUpdateGroup
-├── data/contacts.csv
+├── src/utils.js          # CSV + template helpers
+├── src/bulkSender.js     # Bulk send logic
+├── src/groupCreator.js   # createOrUpdateGroup logic
+├── data/contacts.csv     # Sample contacts
 ├── data/message_template_detailed.txt
-├── app.js                # Interactive menu
-└── config.json
+├── app.js                # Alternative interactive menu
+└── config.json           # Optional settings
 ```
 
-## Logs
-
-After send: `logs/send_results_<timestamp>.json` and `logs/failed_<timestamp>.csv` for retries.
+---
 
 ## Troubleshooting
 
-| Issue | Fix |
-| Contacts CSV not found | Check `--file` path, ensure file exists |
-| Number not registered | Number not on WhatsApp, will be skipped and logged |
-| QR not showing | Ensure `qrcode-terminal` installed, terminal supports UTF-8 |
-| Timeout waiting for ready | Scan QR within 20s, ensure phone has internet |
-| Group creation fails | Need at least 1 valid participant, check numbers |
-| Re-login needed | Delete `.wwebjs_auth/` folder |
+| Problem | Fix |
+|---------|-----|
+| `npm.ps1 cannot be loaded` | Use `npm.cmd` instead of `npm` in PowerShell |
+| Contacts CSV not found | Check the file path, make sure the file exists |
+| Number not registered | The number isn't on WhatsApp — it's skipped and logged |
+| QR not showing | Make sure the terminal is large enough & supports UTF-8 |
+| Timeout waiting for ready | Scan the QR within 20 seconds, phone must have internet |
+| Group creation fails | The CSV needs at least 1 valid WhatsApp number |
+| Re-login needed | Delete the `.wwebjs_auth/` folder and scan QR again |
 
-## Quick One-Liner to Run
+---
 
-```powershell
-npm.cmd install; node bin/cli.js preview --file ./data/contacts.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz123
-```
-"# whatsauto" 
+## Logs
+
+After sending, check `logs/`:
+- `send_results_<timestamp>.json` — full results
+- `failed_<timestamp>.csv` — numbers that failed (for retrying)
