@@ -1,0 +1,13 @@
+node_modules/
+*.log
+.env
+.DS_Store
+Thumbs.db
+.wwebjs_auth/
+.wwebjs_cache/
+logs/
+scripts/
+app.js
+run.ps1
+START_HERE.bat
+QUICKSTART.md

@@ -1,11 +1,18 @@
 #!/usr/bin/env node
 const path = require('path');
-const { WhatsappBulk } = require('../lib');
+const { WhatsappBulk } = require('whatsauto');
 const { printStartupBannerWithTime, printCompletionBanner } = require('../lib/banner');
 
 function printHelp() {
     console.log(`
-Usage: wa-bulk [command] [options]
+Usage: whatsauto [command] [options]
+
+Run "whatsauto" with NO arguments for interactive mode — it will ask you for:
+  - File location (CSV or XLSX)
+  - Group name
+  - Google Meet link
+  - Google Form link
+Then preview, confirm, and do BOTH (send messages + create/update group).
 
 Commands:
   send              Send bulk detailed messages (CSV -> WhatsApp)
@@ -29,18 +36,14 @@ Options:
                       aliases: --form-link, --google-form, --gform, --formLink
 
 Examples:
-  wa-bulk preview --csv ./data/contacts.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz
-  wa-bulk preview --file ./data/Demo-list.xlsx --group "SUSKBS Batch 1" --meet https://meet.google.com/test --form https://forms.gle/xyz
-  wa-bulk send --csv ./data/contacts.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz
-  wa-bulk send --file ./data/Demo-list.xlsx --group "SUSKBS Batch 1" --meet <link> --form <link>
-  wa-bulk group --group "SUSKBS Batch 1" --group-id 120363411392259134@g.us
-  wa-bulk both --file ./data/Demo-list.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz123 --group-id 120363411392259134@g.us
-  wa-bulk both --file ./data/Demo-list.xlsx --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz123
-  wa-bulk both --template ./data/message_template.txt --meet https://meet.google.com/abc-defg-hij
+  whatsauto                                      # interactive (asks file/group/meet/form)
+  whatsauto preview --csv ./data/contacts.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz
+  whatsauto send --csv ./data/contacts.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz
+  whatsauto both --file ./data/Demo-list.xlsx --group "SUSKBS Batch 1" --meet <link> --form <link>
 
 Library usage:
-  const { WhatsappBulk } = require('whatsapp-bulk-meet-automation');
-  const wa = new WhatsappBulk({ 
+  const { WhatsappBulk } = require('whatsauto');
+  const wa = new WhatsappBulk({
     contactsCsv: './data/contacts.csv', // --csv / --file flag
     groupName: 'My Group',              // --group flag
     groupId: '120363...@g.us',          // --group-id flag (checked from logs/groups.json)
@@ -51,12 +54,115 @@ Library usage:
 `);
 }
 
+/**
+ * Interactive mode: ask the user for file location, group name,
+ * Google Meet link and Google Form link, then run the "both" flow.
+ */
+async function interactiveMode() {
+    const readline = require('readline');
+    const { loadConfig } = require('../src/utils');
+    const { normalizeMeetLink, normalizeFormLink } = require('../lib/meet');
+
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const ask = q => new Promise(res => rl.question(q, ans => res(ans.trim())));
+
+    const config = loadConfig();
+    const defaultCsv = path.join(process.cwd(), config.paths.contactsCsv);
+    const defaultGroup = config.group.name;
+
+    console.log('\n[INTERACTIVE] WhatsApp bulk automation. Press Enter to accept the [default].\n');
+    try {
+        const file = (await ask(`  File location (CSV or XLSX) [${defaultCsv}]: `)) || defaultCsv;
+        const group = (await ask(`  Group name [${defaultGroup}]: `)) || defaultGroup;
+        const meet = await ask('  Google Meet link (Enter to use links from CSV): ');
+        const form = await ask('  Google Form link (Enter to use links from CSV): ');
+
+        const opts = { contactsCsv: file, groupName: group };
+        if (meet) opts.meetLink = normalizeMeetLink(meet);
+        if (form) opts.formLink = normalizeFormLink(form);
+
+        const wa = new WhatsappBulk(opts);
+        let previews;
+        try {
+            previews = wa.previewMessages();
+        } catch (e) {
+            console.error(`[FATAL] Could not load contacts: ${e.message}`);
+            process.exit(1);
+        }
+
+        console.log(`\n[PREVIEW] Loaded ${previews.length} contacts. Example message for "${group}":\n`);
+        console.log(previews[0].message);
+        if (wa.meetLink) console.log(`[MEET] Using Meet link for all contacts: ${wa.meetLink}`);
+        if (wa.formLink) console.log(`[FORM] Using Form link for all contacts: ${wa.formLink}`);
+
+        const confirm = await ask('\nType YES to send messages + create/update the group: ');
+        if (confirm !== 'YES') {
+            console.log('Cancelled.');
+            process.exit(0);
+        }
+
+        await wa.init();
+        await runBoth(wa);
+    } finally {
+        try { rl.close(); } catch {}
+    }
+}
+
+/**
+ * "Both" flow: if group already exists (logs/live), skip personal sends and
+ * only post the group message; otherwise send personal + create/update group.
+ */
+async function runBoth(wa) {
+    const { isGroupInLogs, isGroupIdInLogs, findGroupInLogs, findGroupByIdInLogs } = require('../src/utils');
+    const { findGroupByName } = require('../src/groupCreator');
+    let existsInLogs = false;
+    let existsById = false;
+    let existsLive = false;
+    let logEntryByName = null;
+    let logEntryById = null;
+    try { logEntryByName = findGroupInLogs(wa.groupName); existsInLogs = !!logEntryByName; } catch {}
+    try { if (wa.groupId) { logEntryById = findGroupByIdInLogs(wa.groupId); existsById = !!logEntryById; } } catch {}
+    try { existsLive = !!(await findGroupByName(wa.client, wa.groupName)); } catch {}
+    let existsLiveById = false;
+    if (wa.groupId && !existsLive) {
+        try { const c = await wa.client.getChatById(wa.groupId).catch(()=>null); existsLiveById = !!(c && c.isGroup); if (existsLiveById) console.log(`[INFO] Found live group by ID ${wa.groupId} (name: ${c.name})`); } catch {}
+    }
+    const alreadyExists = existsInLogs || existsById || existsLive || existsLiveById;
+    const resolvedId = wa.groupId || (logEntryByName ? logEntryByName.groupId : '') || (logEntryById ? logEntryById.groupId : '');
+    const resolvedName = wa.groupName || (logEntryById ? logEntryById.groupName : '') || (logEntryByName ? logEntryByName.groupName : '');
+    if (alreadyExists) {
+        console.log(`\n[INFO] Group "${resolvedName}" ${resolvedId ? '('+resolvedId+')' : ''} already exists ${existsInLogs ? '(found in logs by name)' : ''}${existsById ? '(found in logs by ID)' : ''}${existsInLogs && existsLive ? ' + ' : ''}${existsLive ? '(found live on WhatsApp)' : ''}${existsLiveById ? '(found live by ID)' : ''} — skipping personal messages.`);
+        console.log(`[INFO] Sending group-only message (session + group link + form link, no name/phone) to existing group by ID+name...`);
+        const res = await wa.createOrUpdateGroup();
+        console.log('[RESULT]', res);
+        console.log(`[INFO] Personal messages skipped as group already exists. Sent to group ID ${resolvedId || res.groupId || 'live'} and name "${resolvedName}".`);
+    } else {
+        console.log(`[INFO] Group "${wa.groupName}" not found in logs (by name/ID) or live — will send personal messages + create group.`);
+        await wa.sendBulk();
+        const res = await wa.createOrUpdateGroup();
+        console.log('[RESULT]', res);
+    }
+}
+
 async function main() {
     printStartupBannerWithTime();
     const args = process.argv.slice(2);
     const cmd = args[0];
 
-    if (!cmd || cmd === '--help' || cmd === '-h') {
+    if (!cmd) {
+        try {
+            await interactiveMode();
+        } catch (e) {
+            console.error('[FATAL]', e);
+            process.exit(1);
+        }
+        console.log('\n[OK] Done. Session saved.');
+        printCompletionBanner();
+        setTimeout(() => process.exit(0), 600);
+        return;
+    }
+
+    if (cmd === '--help' || cmd === '-h' || cmd === 'help') {
         printHelp();
         process.exit(0);
     }
@@ -111,7 +217,7 @@ async function main() {
             const { buildGroupOnlyMessage } = require('../lib/formatter');
             const { loadTemplate } = require('../src/utils');
             const contacts = loadContacts(wa.contactsCsv);
-            const groupTpl = loadTemplate('./data/group_message_template.txt');
+            const groupTpl = loadTemplate(path.join(__dirname, '..', 'data', 'group_message_template.txt'));
             const { findGroupInLogs } = require('../src/utils');
             const logEntry = findGroupInLogs(wa.groupName);
             const groupLink = logEntry ? logEntry.inviteLink : (wa.groupId ? `https://chat.whatsapp.com/invite-by-id-${wa.groupId}` : '');
@@ -133,39 +239,7 @@ async function main() {
             const res = await wa.createOrUpdateGroup();
             console.log('[RESULT]', res);
         } else if (cmd === 'both') {
-            // Requirement: check group name AND group ID from logs, if found dont create again, just send group message by ID+name
-            // and if group already exists, skip personal sending (only session + group link + form link to group)
-            const { isGroupInLogs, isGroupIdInLogs, findGroupInLogs, findGroupByIdInLogs } = require('../src/utils');
-            const { findGroupByName } = require('../src/groupCreator');
-            let existsInLogs = false;
-            let existsById = false;
-            let existsLive = false;
-            let logEntryByName = null;
-            let logEntryById = null;
-            try { logEntryByName = findGroupInLogs(wa.groupName); existsInLogs = !!logEntryByName; } catch {}
-            try { if (wa.groupId) { logEntryById = findGroupByIdInLogs(wa.groupId); existsById = !!logEntryById; } } catch {}
-            try { existsLive = !!(await findGroupByName(wa.client, wa.groupName)); } catch {}
-            // Also check live by ID if flag provided
-            let existsLiveById = false;
-            if (wa.groupId && !existsLive) {
-                try { const c = await wa.client.getChatById(wa.groupId).catch(()=>null); existsLiveById = !!(c && c.isGroup); if (existsLiveById) console.log(`[INFO] Found live group by ID ${wa.groupId} (name: ${c.name})`); } catch {}
-            }
-            const alreadyExists = existsInLogs || existsById || existsLive || existsLiveById;
-            // Resolve group ID to use (prefer flag, then log by name, then log by ID)
-            const resolvedId = wa.groupId || (logEntryByName ? logEntryByName.groupId : '') || (logEntryById ? logEntryById.groupId : '');
-            const resolvedName = wa.groupName || (logEntryById ? logEntryById.groupName : '') || (logEntryByName ? logEntryByName.groupName : '');
-            if (alreadyExists) {
-                console.log(`\n[INFO] Group "${resolvedName}" ${resolvedId ? '('+resolvedId+')' : ''} already exists ${existsInLogs ? '(found in logs by name)' : ''}${existsById ? '(found in logs by ID)' : ''}${existsInLogs && existsLive ? ' + ' : ''}${existsLive ? '(found live on WhatsApp)' : ''}${existsLiveById ? '(found live by ID)' : ''} — skipping personal messages.`);
-                console.log(`[INFO] Sending group-only message (session + group link + form link, no name/phone) to existing group by ID+name...`);
-                const res = await wa.createOrUpdateGroup();
-                console.log('[RESULT]', res);
-                console.log(`[INFO] Personal messages skipped as group already exists. Sent to group ID ${resolvedId || res.groupId || 'live'} and name "${resolvedName}".`);
-            } else {
-                console.log(`[INFO] Group "${wa.groupName}" not found in logs (by name/ID) or live — will send personal messages + create group.`);
-                await wa.sendBulk();
-                const res = await wa.createOrUpdateGroup();
-                console.log('[RESULT]', res);
-            }
+            await runBoth(wa);
         } else {
             console.error(`Unknown command: ${cmd}`);
             printHelp();
@@ -180,11 +254,7 @@ async function main() {
     }
 }
 
-main().catch(async e => { 
-    console.error('[FATAL]', e); 
-    try { 
-        // attempt cleanup if client was created
-        const { WhatsappBulk: WB } = require('../lib');
-    } catch {}
-    process.exit(1); 
+main().catch(e => {
+    console.error('[FATAL]', e);
+    process.exit(1);
 });

@@ -1,0 +1,17 @@
+
+[32m[1m
+ ██╗    ██╗██╗  ██╗ █████╗ ████████╗███████╗ █████╗ ██╗   ██╗████████╗  ██████╗
+ ██║    ██║██║  ██║██╔══██╗╚══██╔══╝██╔════╝██╔══██╗██║   ██║╚══██╔══╝██╔═══██╗
+ ██║ █╗ ██║███████║███████║   ██║   ███████╗███████║██║   ██║   ██║   ██║   ██║
+ ██║███╗██║██╔══██║██╔══██║   ██║   ╚════██║██╔══██║██║   ██║   ██║   ██║   ██║
+ ╚███╔███╔╝██║  ██║██║  ██║   ██║   ███████║██║  ██║╚██████╔╝   ██║   ╚██████╔╝
+  ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝
+[1m WhatsAuto [0m[97m[1m Bulk Automation  [0m [32m v1.0.0 [0m [90m | Bulk Meet & Form | Groups [0m
+
+
+  [90mStarted at: 6/9/2026, 11:57:41 am  |  Node v24.19.0  |  [36mWhatsAuto[90m ready[0m
+
+
+[INTERACTIVE] WhatsApp bulk automation. Press Enter to accept the [default].
+
+  File location (CSV or XLSX) [D:\Suskbs\whatsapp\data\contacts.csv]:   Group name [SUSKBS Session Group]: 

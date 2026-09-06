@@ -1,5 +1,5 @@
 /**
- * Example: Using whatsapp-bulk-meet-automation as NPM library
+ * Example: Using whatsauto as NPM library
  * 
  * Covers: CSV -> detailed formatted messages with Google Meet + Google Form linking + group creation (update if exists)
  * Flags mapping: --csv/--file (file), --group (group name), --meet (meet link), --form (form link)
@@ -9,7 +9,7 @@ const path = require('path');
 
 // 1. Class-based usage with all flags
 async function classExample() {
-    const { WhatsappBulk } = require('../lib');
+    const { WhatsappBulk } = require('whatsauto');
 
     const wa = new WhatsappBulk({
         contactsCsv: './data/contacts.csv',                 // flag: --csv / --file / --input
@@ -37,7 +37,7 @@ async function classExample() {
 
 // 2. Functional helper with Google Meet + Form linking
 async function functionalExample() {
-    const wa = require('../lib');
+    const wa = require('whatsauto');
     const { isValidMeetLink, normalizeMeetLink, formatMeetLink, isValidFormLink, normalizeFormLink, formatFormLink } = wa;
 
     const meet = 'meet.google.com/abc-defg-hij';
@@ -61,7 +61,7 @@ async function functionalExample() {
 
 // 3. One-shot helper with all flags
 async function oneShotExample() {
-    const { sendFromCsv } = require('../lib');
+    const { sendFromCsv } = require('whatsauto');
     // Dry run with flags mapped: file, group, meet, form
     await sendFromCsv({
         contactsCsv: './data/contacts.csv', // --file

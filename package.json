@@ -15,8 +15,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/Suskbs-Admin/whatsauto.git"
   },
+  "bugs": {
+    "url": "https://github.com/Suskbs-Admin/whatsauto/issues"
+  },
+  "homepage": "https://github.com/Suskbs-Admin/whatsauto#readme",
   "license": "MIT",
   "author": "Hackb07",
   "type": "commonjs",
@@ -24,14 +28,17 @@
     ".": "./lib/index.js",
     "./meet": "./lib/meet.js",
     "./formatter": "./lib/formatter.js",
-    "./utils": "./src/utils.js"
+    "./utils": "./src/utils.js",
+    "./package.json": "./package.json"
   },
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "bin": {
+    "whatsauto": "bin/cli.js",
     "wa-bulk": "bin/cli.js"
   },
   "directories": {
+    "bin": "bin",
     "example": "examples",
     "lib": "lib"
   },
@@ -39,18 +46,25 @@
     "lib/",
     "src/",
     "bin/",
-    "data/message_template*.txt",
+    "data/message_template_detailed.txt",
+    "data/message_template.txt",
+    "data/group_message_template.txt",
+    "data/contacts.csv",
     "config.json",
-    "README.md"
+    "examples/",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "start": "node app.js",
     "send": "node src/bulkSender.js",
     "group": "node src/groupCreator.js",
     "preview": "node lib/index.js",
+    "test": "node scripts/smoke-test.js",
     "test:template": "node src/testTemplate.js",
     "test:preview": "node bin/cli.js preview",
-    "cli": "node bin/cli.js"
+    "cli": "node bin/cli.js",
+    "prepublishOnly": "npm test"
   },
   "dependencies": {
     "csv-parse": "^5.5.6",

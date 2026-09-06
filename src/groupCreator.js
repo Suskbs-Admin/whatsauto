@@ -133,7 +133,7 @@ async function addMembersToGroup(client, groupChat, contacts, options = {}) {
     const groupMsgTemplate = (() => {
         try {
             const { loadTemplate } = require('./utils');
-            return loadTemplate('./data/group_message_template.txt');
+            return loadTemplate(path.join(__dirname, '..', 'data', 'group_message_template.txt'));
         } catch { return `Group: {{group_name}}\nSession: {{session}}\nGroup Link: {{group_link}}\nMeet Link: {{meet_link}}\nForm Link: {{form_link}}`; }
     })();
     const groupOnlyMsg = buildGroupOnlyMessage(contacts, groupChat.name || groupName, inviteLink || '', groupMsgTemplate, {
@@ -263,7 +263,7 @@ async function createGroup(client, groupName, contacts, options = {}) {
             const inviteTmp = await chat.getInviteCode().then(c => `https://chat.whatsapp.com/${c}`).catch(() => '');
             finalInvite = inviteTmp || '';
             const groupTpl = (() => {
-                try { const { loadTemplate } = require('./utils'); return loadTemplate('./data/group_message_template.txt'); }
+                try { const { loadTemplate } = require('./utils'); return loadTemplate(path.join(__dirname, '..', 'data', 'group_message_template.txt')); }
                 catch { return `Group: {{group_name}}\nSession: {{session}}\nGroup Link: {{group_link}}\nMeet Link: {{meet_link}}\nForm Link: {{form_link}}`; }
             })();
             const grpMsg = buildGroupOnlyMessage(contacts, groupName, finalInvite, groupTpl, {

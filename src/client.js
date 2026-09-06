@@ -5,9 +5,10 @@ const { loadConfig } = require('./utils');
 
 function createClient() {
     const config = loadConfig();
+    const sessionDir = path.isAbsolute(config.paths.sessionDir) ? config.paths.sessionDir : path.join(process.cwd(), config.paths.sessionDir);
     const client = new Client({
         authStrategy: new LocalAuth({
-            dataPath: path.isAbsolute(config.paths.sessionDir) ? config.paths.sessionDir : path.join(__dirname, '..', config.paths.sessionDir)
+            dataPath: sessionDir
         }),
         puppeteer: {
             headless: true,

@@ -11,7 +11,7 @@ Built on `whatsapp-web.js` (WhatsApp Web, session persists after QR). Validates 
 - Flags override CSV for all contacts
 - Validates WhatsApp numbers, random delay anti-ban, logs to `logs/`
 - Group: creates if not exists, else adds new members (skips existing), always mentions group name
-- Works as CLI `wa-bulk` and as library `require('whatsapp-bulk-meet-automation')`
+- Works as CLI `wa-bulk` and as library `require('whatsauto')`
 - Dry-run preview without login
 
 ## Flags Mapping
@@ -30,6 +30,10 @@ Built on `whatsapp-web.js` (WhatsApp Web, session persists after QR). Validates 
 ## Installation
 
 ```powershell
+# As a consumer of the published package
+npm i whatsauto
+
+# Dev install inside the repo
 cd D:\Suskbs\whatsapp
 npm.cmd install
 ```
@@ -95,21 +99,38 @@ Menu:
 ```
 First run shows QR: scan with **WhatsApp > Linked Devices > Link a device**. Session saved to `.wwebjs_auth/`.
 
-### 3. Direct CLI (wa-bulk)
+### 3. Direct CLI (whatsauto / wa-bulk)
 
 ```powershell
-# Send only
-node bin/cli.js send --file ./data/contacts.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz123
+# INTERACTIVE — type whatsauto, then enter:
+#   file location, group name, Google Meet link, Google Form link
+whatsauto
 
-# Group only (creates or adds new members if exists)
-node bin/cli.js group --file ./data/contacts.csv --group "SUSKBS Batch 1"
+# Or with npx (before install/publish for local testing)
+npx whatsauto
 
-# Both
-node bin/cli.js both --file ./data/contacts.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz123
+# Flags (skip prompts):
+whatsauto preview --file ./data/contacts.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz123
+whatsauto send --file ./data/contacts.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz123
+whatsauto both --file ./data/contacts.csv --group "SUSKBS Batch 1" --meet https://meet.google.com/abc-defg-hij --form https://forms.gle/xyz123
+wa-bulk group --file ./data/contacts.csv --group "SUSKBS Batch 1"
 
-# npx after publish
+# Installed as dependency (npx after publish)
 npx wa-bulk preview --file ./data/contacts.csv --group "G1" --meet <link> --form <link>
 ```
+
+The interactive `whatsauto` prompt asks you for each input (press Enter to keep the default):
+
+```
+[INTERACTIVE] WhatsApp bulk automation. Press Enter to accept the [default].
+
+  File location (CSV or XLSX) [./data/contacts.csv]:   <-- type your file (or Enter)
+  Group name [SUSKBS Session Group]:                    <-- type the group name
+  Google Meet link (Enter to use links from CSV):       <-- type a Meet link for everyone
+  Google Form link (Enter to use links from CSV):       <-- type a Form link for everyone
+```
+
+It then previews one message, asks you to confirm with `YES`, and runs send + create/update group.
 
 ### 4. Standalone Scripts
 
@@ -121,7 +142,7 @@ node src/groupCreator.js --file ./data/contacts.csv --group "G1"
 ### 5. As NPM Library
 
 ```js
-const { WhatsappBulk } = require('whatsapp-bulk-meet-automation');
+const { WhatsappBulk } = require('whatsauto');
 
 const wa = new WhatsappBulk({
   contactsCsv: './data/contacts.csv', // --file

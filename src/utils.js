@@ -8,8 +8,12 @@ function loadConfig() {
     return JSON.parse(fs.readFileSync(configPath, 'utf8'));
 }
 
+function resolvePath(p) {
+    return path.isAbsolute(p) ? p : path.join(process.cwd(), p);
+}
+
 function loadContacts(csvPath) {
-    const absolutePath = path.isAbsolute(csvPath) ? csvPath : path.join(__dirname, '..', csvPath);
+    const absolutePath = resolvePath(csvPath);
     if (!fs.existsSync(absolutePath)) throw new Error(`Contacts file not found: ${absolutePath}`);
     const ext = path.extname(absolutePath).toLowerCase();
     let records = [];
@@ -116,7 +120,7 @@ function formatPhone(raw) {
 }
 
 function loadTemplate(templatePath) {
-    const absolutePath = path.isAbsolute(templatePath) ? templatePath : path.join(__dirname, '..', templatePath);
+    const absolutePath = resolvePath(templatePath);
     if (!fs.existsSync(absolutePath)) throw new Error(`Template not found: ${absolutePath}`);
     return fs.readFileSync(absolutePath, 'utf8');
 }
@@ -169,7 +173,7 @@ function randomDelay(min, max) {
 
 function ensureLogsDir() {
     const config = loadConfig();
-    const logsDir = path.isAbsolute(config.paths.logsDir) ? config.paths.logsDir : path.join(__dirname, '..', config.paths.logsDir);
+    const logsDir = resolvePath(config.paths.logsDir);
     if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
     return logsDir;
 }
