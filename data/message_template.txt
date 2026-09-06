@@ -1,0 +1,15 @@
+Hello {{name}},
+
+This is a reminder for your upcoming session.
+
+Session: {{session}}
+Group: {{group_name}}
+Meet Link: {{meet_link}}
+Form Link: {{form_link}}
+Registered Number: {{phone}}
+
+Please join 5 minutes early using the Google Meet link above and fill the form after: {{form_link}}
+If you have any questions, reply to this message.
+
+Thanks,
+SUSKBS Team

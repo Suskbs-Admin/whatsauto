@@ -1,0 +1,65 @@
+{
+  "name": "whatsauto",
+  "version": "1.0.0",
+  "description": "WhatsApp bulk automation NPM library — send detailed personalized messages (number, name, session, Google Meet link, group name) via CSV and create/update WhatsApp groups (adds new members if group exists)",
+  "keywords": [
+    "whatsapp",
+    "whatsapp-web.js",
+    "bulk",
+    "automation",
+    "google-meet",
+    "meet",
+    "csv",
+    "group",
+    "messaging"
+  ],
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "license": "MIT",
+  "author": "Hackb07",
+  "type": "commonjs",
+  "exports": {
+    ".": "./lib/index.js",
+    "./meet": "./lib/meet.js",
+    "./formatter": "./lib/formatter.js",
+    "./utils": "./src/utils.js"
+  },
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "bin": {
+    "wa-bulk": "bin/cli.js"
+  },
+  "directories": {
+    "example": "examples",
+    "lib": "lib"
+  },
+  "files": [
+    "lib/",
+    "src/",
+    "bin/",
+    "data/message_template*.txt",
+    "config.json",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "node app.js",
+    "send": "node src/bulkSender.js",
+    "group": "node src/groupCreator.js",
+    "preview": "node lib/index.js",
+    "test:template": "node src/testTemplate.js",
+    "test:preview": "node bin/cli.js preview",
+    "cli": "node bin/cli.js"
+  },
+  "dependencies": {
+    "csv-parse": "^5.5.6",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.26.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

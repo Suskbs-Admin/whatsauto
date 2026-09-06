@@ -1,0 +1,8 @@
+Group: {{group_name}}
+
+Session: {{session}}
+Group Link: {{group_link}}
+Meet Link: {{meet_link}}
+Form Link: {{form_link}}
+
+Please join using the Meet link at your session time and fill the Form after the session.

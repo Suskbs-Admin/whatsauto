@@ -1,0 +1,26 @@
+Hello {{name}},
+
+You are invited to join the following session.
+
+Details:
+- Name: {{name}}
+- Phone: {{phone}}
+- Session: {{session}}
+- Group Name: {{group_name}}
+- Google Meet Link: {{meet_link}}
+- Google Form Link: {{form_link}}
+
+Instructions:
+1. Click the Google Meet link at the scheduled time.
+2. Join with your registered name ({{name}}) for attendance.
+3. Please fill the Google Form after the session: {{form_link}}
+4. If any link does not open, copy and paste it into your browser.
+5. For any issues, reply to this message.
+
+Meet Link: {{meet_link}}
+Form Link: {{form_link}}
+
+We have also added you to the WhatsApp group "{{group_name}}" for updates.
+
+Thanks,
+SUSKBS Team

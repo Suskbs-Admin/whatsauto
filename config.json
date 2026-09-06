@@ -1,0 +1,27 @@
+{
+  "group": {
+    "name": "SUSKBS Session Group",
+    "description": "Created via WhatsApp automation - updates and Google Meet links"
+  },
+  "messaging": {
+    "delayBetweenMessagesMs": {
+      "min": 5000,
+      "max": 12000
+    },
+    "typingDelayMs": 1500,
+    "retryFailed": true,
+    "logResults": true
+  },
+  "paths": {
+    "contactsCsv": "./data/contacts.csv",
+    "messageTemplate": "./data/message_template_detailed.txt",
+    "simpleTemplate": "./data/message_template.txt",
+    "sessionDir": "./.wwebjs_auth",
+    "logsDir": "./logs"
+  },
+  "countryCodeDefault": "91",
+  "googleMeet": {
+    "validateLinks": true,
+    "fallbackText": "Meet link will be shared shortly. Please wait for update in group."
+  }
+}
