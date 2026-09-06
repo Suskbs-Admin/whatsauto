@@ -1,6 +1,16 @@
 # WhatsApp Bulk Automation
 
-NPM library + CLI to send detailed personalized WhatsApp messages and create/update groups from a CSV. All inputs are mapped via flags: **file location, group name, Google Meet link, Google Form link**.
+```
+ ██╗    ██╗██╗  ██╗ █████╗ ████████╗███████╗ █████╗ ██╗   ██╗████████╗  ██████╗
+ ██║    ██║██║  ██║██╔══██╗╚══██╔══╝██╔════╝██╔══██╗██║   ██║╚══██╔══╝██╔═══██╗
+ ██║ █╗ ██║███████║███████║   ██║   ███████╗███████║██║   ██║   ██║   ██║   ██║
+ ██║███╗██║██╔══██║██╔══██║   ██║   ╚════██║██╔══██║██║   ██║   ██║   ██║   ██║
+ ╚███╔███╔╝██║  ██║██║  ██║   ██║   ███████║██║  ██║╚██████╔╝   ██║   ╚██████╔╝
+  ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝
+ WhatsAuto Bulk Automation  v1.0.0  | Bulk Meet & Form | Groups
+```
+
+**WhatsAuto** — NPM library + CLI to send detailed personalized WhatsApp messages and create/update groups from a CSV. All inputs are mapped via flags: **file location, group name, Google Meet link, Google Form link**.
 
 Built on `whatsapp-web.js` (WhatsApp Web, session persists after QR). Validates and normalizes Google Meet / Form links.
 
